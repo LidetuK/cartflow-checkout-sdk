@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* E-commerce SDK Design System */
 
 @layer base {
   :root {
@@ -17,24 +15,46 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Modern blue-purple gradient theme */
+    --primary: 244 58% 51%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 250 84% 70%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 249 24% 95%;
+    --secondary-foreground: 244 58% 51%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 249 24% 95%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 251 91% 95%;
+    --accent-foreground: 244 58% 51%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 244 58% 51%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(244 58% 51%), hsl(250 84% 70%));
+    --gradient-surface: linear-gradient(145deg, hsl(0 0% 100%), hsl(249 24% 98%));
+    --gradient-border: linear-gradient(135deg, hsl(244 58% 51% / 0.1), hsl(250 84% 70% / 0.1));
+
+    /* Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(244 58% 51% / 0.1), 0 2px 4px -1px hsl(244 58% 51% / 0.06);
+    --shadow-elevated: 0 10px 25px -3px hsl(244 58% 51% / 0.1), 0 4px 6px -2px hsl(244 58% 51% / 0.05);
+    --shadow-glow: 0 0 40px hsl(244 58% 51% / 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --radius: 0.5rem;
 

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CheckoutData, CartItem } from '@/types/product';
-import { CreditCard, Lock, Mail, User, MapPin, ArrowLeft } from 'lucide-react';
+import { CreditCard, Lock, Mail, User, MapPin, ArrowLeft, Phone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CheckoutFormProps {
@@ -76,12 +76,58 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
     }
 
     setIsProcessing(true);
-    
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    onComplete(formData);
-    setIsProcessing(false);
+
+    try {
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+      const orderNo = `ORD-${Date.now()}`;
+      const amount = (total * 1.1).toFixed(2);
+
+      const payload = {
+        order_no: orderNo,
+        amount,
+        success_url: `${window.location.origin}/success`,
+        failure_url: `${window.location.origin}/failure`,
+        customer_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        email_id: formData.email,
+        mobile_no: formData.phone || '9999999999',
+      };
+
+      const res = await fetch(`${apiBase}/payments/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Failed to initiate payment');
+      const data = await res.json();
+
+      // Build and submit form to YagoutPay
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = data.post_url;
+
+      const inputs: Record<string, string> = {
+        me_id: data.me_id,
+        merchant_request: data.merchant_request,
+        hash: data.hash,
+      };
+
+      Object.entries(inputs).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Payment initiation failed', variant: 'destructive' });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const formatCardNumber = (value: string) => {
@@ -210,6 +256,20 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                         placeholder="your.email@example.com"
                         className="mt-1"
                       />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone *</Label>
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone || ''}
+                          onChange={(e) => updateFormData('phone' as any, e.target.value)}
+                          placeholder="9999999999"
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">

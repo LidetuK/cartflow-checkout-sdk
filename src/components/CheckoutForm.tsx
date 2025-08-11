@@ -76,7 +76,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
     }
 
     setIsProcessing(true);
-
+    
     try {
       const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
       const orderNo = `ORD-${Date.now()}`;
@@ -126,7 +126,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
       console.error(err);
       toast({ title: 'Payment initiation failed', variant: 'destructive' });
     } finally {
-      setIsProcessing(false);
+    setIsProcessing(false);
     }
   };
 

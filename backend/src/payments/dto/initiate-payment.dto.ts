@@ -27,6 +27,27 @@ export class InitiatePaymentDto {
   @Length(7, 20)
   @IsNumberString()
   mobile_no!: string;
+
+  // Optional billing fields that frontend might send
+  @IsOptional()
+  @IsString()
+  bill_address?: string;
+
+  @IsOptional()
+  @IsString()
+  bill_city?: string;
+
+  @IsOptional()
+  @IsString()
+  bill_state?: string;
+
+  @IsOptional()
+  @IsString()
+  bill_country?: string;
+
+  @IsOptional()
+  @IsString()
+  bill_zip?: string;
 }
 
 

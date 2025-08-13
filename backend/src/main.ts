@@ -17,7 +17,8 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      // Ignore extra fields like bill_address, bill_city, etc., instead of throwing 400
+      forbidNonWhitelisted: false,
       transform: true,
     }),
   );

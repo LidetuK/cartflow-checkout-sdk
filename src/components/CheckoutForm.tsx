@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CheckoutData, CartItem } from '@/types/product';
-import { CreditCard, Lock, Mail, User, MapPin, ArrowLeft, Phone } from 'lucide-react';
+import { CreditCard, Lock, Mail, User, MapPin, ArrowLeft, Phone, Home, Map, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CheckoutFormProps {
@@ -24,9 +24,11 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
     firstName: '',
     lastName: '',
     address: '',
-    city: '',
-    postalCode: '',
-    country: '',
+    city: 'Addis Ababa',
+    state: 'Addis Ababa',
+    postalCode: '1000',
+    country: 'ET', // ISO 3166-1 alpha-2 code for Ethiopia
+    phone: '251',
     paymentMethod: 'card',
     cardNumber: '',
     expiryDate: '',
@@ -42,13 +44,11 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
   const validateStep = (stepNumber: number) => {
     switch (stepNumber) {
       case 1:
-        return formData.email && formData.firstName && formData.lastName;
+        return formData.email && formData.firstName && formData.lastName && formData.phone;
       case 2:
         return formData.address && formData.city && formData.postalCode && formData.country;
       case 3:
-        if (formData.paymentMethod === 'card') {
-          return formData.cardNumber && formData.expiryDate && formData.cvv;
-        }
+        // For Ethiopian mobile payment, no additional validation needed
         return true;
       default:
         return false;
@@ -80,26 +80,61 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
     try {
       const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
       const orderNo = `ORD-${Date.now()}`;
-      const amount = (total * 1.1).toFixed(2);
+      // Ensure amount has exactly 2 decimal places
+      const amount = (Math.round(total * 1.1 * 100) / 100).toFixed(2);
+      
+      // Clean phone number and remove country code if present
+      let cleanPhone = formData.phone.replace(/\D/g, '');
+      
+      // Remove Ethiopian country code (251) if present
+      if (cleanPhone.startsWith('251')) {
+        cleanPhone = cleanPhone.substring(3);
+      }
+      
+      // Ensure URLs have protocol
+      const protocol = window.location.protocol;
+      const host = window.location.host;
 
+      // Only include required fields to avoid validation errors
       const payload = {
         order_no: orderNo,
-        amount,
-        success_url: `${window.location.origin}/success`,
-        failure_url: `${window.location.origin}/failure`,
+        amount: amount,  // Already formatted with 2 decimal places
+        success_url: `${protocol}//${host}/success`,
+        failure_url: `${protocol}//${host}/failure`,
         customer_name: `${formData.firstName} ${formData.lastName}`.trim(),
         email_id: formData.email,
-        mobile_no: formData.phone || '9999999999',
+        mobile_no: cleanPhone
       };
+      
+      // Add optional fields only if they have values
+      if (formData.address) payload.bill_address = formData.address;
+      if (formData.city) payload.bill_city = formData.city;
+      if (formData.state) payload.bill_state = formData.state;
+      if (formData.country) payload.bill_country = formData.country;
+      if (formData.postalCode) payload.bill_zip = formData.postalCode;
 
+      console.log('Sending payload:', JSON.stringify(payload, null, 2));
+      
       const res = await fetch(`${apiBase}/payments/initiate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Failed to initiate payment');
-      const data = await res.json();
+      const responseData = await res.json().catch(() => ({}));
+      console.log('Response status:', res.status);
+      console.log('Response data:', responseData);
+
+      if (!res.ok) {
+        throw new Error(
+          `Failed to initiate payment: ${res.status} - ${responseData.message || 'Unknown error'}`
+        );
+      }
+      
+      const data = responseData;
 
       // Build and submit form to YagoutPay
       const form = document.createElement('form');
@@ -110,6 +145,9 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
         me_id: data.me_id,
         merchant_request: data.merchant_request,
         hash: data.hash,
+        aggregator_id: data.aggregator_id || 'yagout',
+        // Include any additional fields from the response
+        ...(data.redirect_url && { redirect_url: data.redirect_url })
       };
 
       Object.entries(inputs).forEach(([name, value]) => {
@@ -123,10 +161,14 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
       document.body.appendChild(form);
       form.submit();
     } catch (err) {
-      console.error(err);
-      toast({ title: 'Payment initiation failed', variant: 'destructive' });
+      console.error('Payment error:', err);
+      toast({ 
+        title: 'Payment initiation failed', 
+        description: err instanceof Error ? err.message : 'Please check your details and try again',
+        variant: 'destructive' 
+      });
     } finally {
-    setIsProcessing(false);
+      setIsProcessing(false);
     }
   };
 
@@ -246,30 +288,31 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email Address *</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" /> Email *
+                      </Label>
                       <Input
                         id="email"
                         type="email"
+                        placeholder="john@example.com"
                         value={formData.email}
                         onChange={(e) => updateFormData('email', e.target.value)}
-                        placeholder="your.email@example.com"
-                        className="mt-1"
+                        required
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="phone">Phone *</Label>
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={formData.phone || ''}
-                          onChange={(e) => updateFormData('phone' as any, e.target.value)}
-                          placeholder="9999999999"
-                          className="mt-1"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-2">
+                        <Phone className="w-4 h-4" /> Phone Number *
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="251911223344"
+                        value={formData.phone}
+                        onChange={(e) => updateFormData('phone', e.target.value)}
+                        required
+                      />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -307,53 +350,74 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label htmlFor="address">Street Address *</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className="flex items-center gap-2">
+                        <Home className="w-4 h-4" /> Billing Address *
+                      </Label>
                       <Input
                         id="address"
+                        placeholder="Bole Road"
                         value={formData.address}
                         onChange={(e) => updateFormData('address', e.target.value)}
-                        placeholder="123 Main Street"
-                        className="mt-1"
+                        required
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="city">City *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="flex items-center gap-2">
+                          <Map className="w-4 h-4" /> City *
+                        </Label>
                         <Input
                           id="city"
+                          placeholder="Addis Ababa"
                           value={formData.city}
                           onChange={(e) => updateFormData('city', e.target.value)}
-                          placeholder="New York"
-                          className="mt-1"
+                          required
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="postalCode">Postal Code *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="state" className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" /> State/Region *
+                        </Label>
                         <Input
-                          id="postalCode"
-                          value={formData.postalCode}
-                          onChange={(e) => updateFormData('postalCode', e.target.value)}
-                          placeholder="10001"
-                          className="mt-1"
+                          id="state"
+                          placeholder="Addis Ababa"
+                          value={formData.state}
+                          onChange={(e) => updateFormData('state', e.target.value)}
+                          required
                         />
                       </div>
                     </div>
                     
+                    <div className="space-y-2">
+                      <Label htmlFor="postalCode">Postal Code *</Label>
+                      <Input
+                        id="postalCode"
+                        value={formData.postalCode}
+                        onChange={(e) => updateFormData('postalCode', e.target.value)}
+                        placeholder="1000"
+                        className="mt-1"
+                      />
+                    </div>
+                    
                     <div>
                       <Label htmlFor="country">Country *</Label>
-                      <Select value={formData.country} onValueChange={(value) => updateFormData('country', value)}>
+                      <Select 
+                        value={formData.country} 
+                        onValueChange={(value) => updateFormData('country', value)}
+                      >
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select country" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="us">United States</SelectItem>
-                          <SelectItem value="ca">Canada</SelectItem>
-                          <SelectItem value="uk">United Kingdom</SelectItem>
-                          <SelectItem value="au">Australia</SelectItem>
-                          <SelectItem value="de">Germany</SelectItem>
-                          <SelectItem value="fr">France</SelectItem>
+                          <SelectItem value="ET">Ethiopia</SelectItem>
+                          <SelectItem value="US">United States</SelectItem>
+                          <SelectItem value="GB">United Kingdom</SelectItem>
+                          <SelectItem value="CA">Canada</SelectItem>
+                          <SelectItem value="AU">Australia</SelectItem>
+                          <SelectItem value="DE">Germany</SelectItem>
+                          <SelectItem value="FR">France</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -366,75 +430,43 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <CreditCard className="w-5 h-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Payment Information</h3>
+                    <h3 className="text-lg font-semibold">Payment Method</h3>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <Button
-                      variant={formData.paymentMethod === 'card' ? 'default' : 'outline'}
-                      onClick={() => updateFormData('paymentMethod', 'card')}
-                      className="h-12"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Credit Card
-                    </Button>
-                    <Button
-                      variant={formData.paymentMethod === 'paypal' ? 'default' : 'outline'}
-                      onClick={() => updateFormData('paymentMethod', 'paypal')}
-                      className="h-12"
-                    >
-                      PayPal
-                    </Button>
-                  </div>
-                  
-                  {formData.paymentMethod === 'card' && (
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="cardNumber">Card Number *</Label>
-                        <Input
-                          id="cardNumber"
-                          value={formData.cardNumber}
-                          onChange={(e) => updateFormData('cardNumber', formatCardNumber(e.target.value))}
-                          placeholder="1234 5678 9012 3456"
-                          maxLength={19}
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="expiryDate">Expiry Date *</Label>
-                          <Input
-                            id="expiryDate"
-                            value={formData.expiryDate}
-                            onChange={(e) => updateFormData('expiryDate', formatExpiryDate(e.target.value))}
-                            placeholder="MM/YY"
-                            maxLength={5}
-                            className="mt-1"
-                          />
+                  <div className="space-y-4">
+                    <div className="text-center p-4 bg-muted/30 rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">
+                        You'll be redirected to YagoutPay to complete your payment
+                      </p>
+                      <div className="flex justify-center gap-4">
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">T</div>
+                          <span>telebirr</span>
                         </div>
-                        <div>
-                          <Label htmlFor="cvv">CVV *</Label>
-                          <Input
-                            id="cvv"
-                            value={formData.cvv}
-                            onChange={(e) => updateFormData('cvv', e.target.value.replace(/\D/g, '').substring(0, 3))}
-                            placeholder="123"
-                            maxLength={3}
-                            className="mt-1"
-                          />
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">C</div>
+                          <span>CBE Birr</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">M</div>
+                          <span>M-PESA</span>
                         </div>
                       </div>
                     </div>
-                  )}
-                  
-                  {formData.paymentMethod === 'paypal' && (
+                    
                     <div className="p-6 border rounded-lg bg-muted/50 text-center">
-                      <p className="text-muted-foreground">
-                        You will be redirected to PayPal to complete your payment.
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">YP</div>
+                        <span className="font-semibold">YagoutPay</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Secure payment processing powered by YagoutPay
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        You'll be redirected to select your preferred mobile wallet
                       </p>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
 
@@ -461,7 +493,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                     disabled={isProcessing}
                     className="ml-auto"
                   >
-                    {isProcessing ? "Processing..." : `Pay $${(total * 1.1).toFixed(2)}`}
+                    {isProcessing ? "Processing..." : `Pay ${(total * 1.1).toFixed(2)} ETB`}
                   </Button>
                 )}
               </div>

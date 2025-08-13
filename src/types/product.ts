@@ -16,11 +16,12 @@ export interface CartItem {
 
 export interface CheckoutData {
   email: string;
-  phone?: string;
+  phone: string;
   firstName: string;
   lastName: string;
   address: string;
   city: string;
+  state: string;
   postalCode: string;
   country: string;
   paymentMethod: 'card' | 'paypal';

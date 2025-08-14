@@ -66,7 +66,7 @@ export const CartSidebar = ({
                   <div className="flex-1">
                     <h4 className="font-medium">{item.product.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      ${item.product.price} each
+                      {item.product.price.toFixed(2)} ETB each
                     </p>
                     
                     <div className="flex items-center justify-between mt-2">
@@ -103,7 +103,7 @@ export const CartSidebar = ({
                   
                   <div className="text-right">
                     <p className="font-semibold">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      {(item.product.price * item.quantity).toFixed(2)} ETB
                     </p>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export const CartSidebar = ({
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Total:</span>
               <span className="text-2xl font-bold text-primary">
-                ${total.toFixed(2)}
+                {total.toFixed(2)} ETB
               </span>
             </div>
             

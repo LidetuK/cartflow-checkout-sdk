@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckoutData, CartItem } from '@/types/product';
+import { CheckoutData, CartItem, PaymentPayload } from '@/types/product';
 import { CreditCard, Lock, Mail, User, MapPin, ArrowLeft, Phone, Home, Map, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,7 +29,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
     postalCode: '1000',
     country: 'ET', // ISO 3166-1 alpha-2 code for Ethiopia
     phone: '251',
-    paymentMethod: 'card',
+    paymentMethod: 'telebirr',
     cardNumber: '',
     expiryDate: '',
     cvv: '',
@@ -96,7 +96,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
       const host = window.location.host;
 
       // Only include required fields to avoid validation errors
-      const payload = {
+      const payload: PaymentPayload = {
         order_no: orderNo,
         amount: amount,  // Already formatted with 2 decimal places
         success_url: `${protocol}//${host}/success`,
@@ -226,7 +226,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                       <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                     </div>
                   </div>
-                  <p className="font-semibold">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold">{(item.product.price * item.quantity).toFixed(2)} ETB</p>
                 </div>
               ))}
               
@@ -235,7 +235,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{total.toFixed(2)} ETB</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
@@ -243,12 +243,12 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                 </div>
                 <div className="flex justify-between">
                   <span>Tax</span>
-                  <span>${(total * 0.1).toFixed(2)}</span>
+                  <span>{(total * 0.1).toFixed(2)} ETB</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${(total * 1.1).toFixed(2)}</span>
+                  <span>{(total * 1.1).toFixed(2)} ETB</span>
                 </div>
               </div>
             </CardContent>
@@ -438,20 +438,20 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                       <p className="text-sm text-muted-foreground mb-2">
                         You'll be redirected to YagoutPay to complete your payment
                       </p>
-                      <div className="flex justify-center gap-4">
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">T</div>
+                      <div className="flex justify-center gap-6">
+                        <div className="flex flex-col items-center gap-2 text-sm">
+                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-lg font-bold">T</div>
                           <span>telebirr</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">C</div>
+                        <div className="flex flex-col items-center gap-2 text-sm">
+                          <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white text-lg font-bold">C</div>
                           <span>CBE Birr</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">M</div>
+                        <div className="flex flex-col items-center gap-2 text-sm">
+                          <img src="/mpesa-logo.png" alt="M-PESA" className="w-12 h-12 object-contain" />
                           <span>M-PESA</span>
                         </div>
-                  </div>
+                      </div>
                       </div>
                       
                     <div className="p-6 border rounded-lg bg-muted/50 text-center">

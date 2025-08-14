@@ -48,7 +48,7 @@ export const OrderSuccess = ({ orderData, items, total, orderId, onBackToShop }:
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Total:</span>
-                  <span>${(total * 1.1).toFixed(2)}</span>
+                  <span>{(total * 1.1).toFixed(2)} ETB</span>
                 </div>
               </div>
             </div>
@@ -79,7 +79,7 @@ export const OrderSuccess = ({ orderData, items, total, orderId, onBackToShop }:
                     <p className="font-medium">{item.product.name}</p>
                     <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                   </div>
-                  <p className="font-semibold">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold">{(item.product.price * item.quantity).toFixed(2)} ETB</p>
                 </div>
               ))}
             </div>

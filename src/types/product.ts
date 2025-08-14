@@ -24,8 +24,23 @@ export interface CheckoutData {
   state: string;
   postalCode: string;
   country: string;
-  paymentMethod: 'card' | 'paypal';
+  paymentMethod: 'telebirr' | 'cbe' | 'm-pesa';
   cardNumber?: string;
   expiryDate?: string;
   cvv?: string;
+}
+
+export interface PaymentPayload {
+  order_no: string;
+  amount: string;
+  success_url: string;
+  failure_url: string;
+  customer_name: string;
+  email_id: string;
+  mobile_no: string;
+  bill_address?: string;
+  bill_city?: string;
+  bill_state?: string;
+  bill_country?: string;
+  bill_zip?: string;
 }

@@ -17,8 +17,8 @@ const sampleProducts: Product[] = [
   {
     id: '1',
     name: 'Premium Wireless Headphones',
-    price: 1.00,
-    originalPrice: 2.00,
+    price: 299.00,
+    originalPrice: 499.00,
     image: productImage,
     description: 'Experience crystal-clear audio with our premium wireless headphones featuring active noise cancellation and 30-hour battery life.',
     features: ['Active Noise Cancellation', '30-hour Battery', 'Premium Audio Drivers', 'Wireless Charging'],

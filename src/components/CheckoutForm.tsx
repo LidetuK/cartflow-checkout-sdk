@@ -168,7 +168,7 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
         variant: 'destructive' 
       });
     } finally {
-      setIsProcessing(false);
+    setIsProcessing(false);
     }
   };
 
@@ -391,14 +391,14 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="postalCode">Postal Code *</Label>
-                      <Input
-                        id="postalCode"
-                        value={formData.postalCode}
-                        onChange={(e) => updateFormData('postalCode', e.target.value)}
+                        <Label htmlFor="postalCode">Postal Code *</Label>
+                        <Input
+                          id="postalCode"
+                          value={formData.postalCode}
+                          onChange={(e) => updateFormData('postalCode', e.target.value)}
                         placeholder="1000"
-                        className="mt-1"
-                      />
+                          className="mt-1"
+                        />
                     </div>
                     
                     <div>
@@ -451,22 +451,22 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">M</div>
                           <span>M-PESA</span>
                         </div>
+                  </div>
                       </div>
-                    </div>
-                    
+                      
                     <div className="p-6 border rounded-lg bg-muted/50 text-center">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">YP</div>
                         <span className="font-semibold">YagoutPay</span>
-                      </div>
+                        </div>
                       <p className="text-sm text-muted-foreground">
                         Secure payment processing powered by YagoutPay
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         You'll be redirected to select your preferred mobile wallet
                       </p>
-                    </div>
-                  </div>
+                        </div>
+                      </div>
                 </div>
               )}
 

@@ -10,14 +10,19 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false });
 
   app.use(helmet());
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(cors({ 
+    origin: ['http://localhost:8080', 'https://yagout-pay-sdk.vercel.app', 'https://uatcheckout.yagoutpay.com'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  }));
   app.use(json());
-  app.use(urlencoded({ extended: false }));
+  app.use(urlencoded({ extended: true }));
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
-      // Ignore extra fields like bill_address, bill_city, etc., instead of throwing 400
+      whitelist: false,
+      // Disable whitelisting to allow all properties
       forbidNonWhitelisted: false,
       transform: true,
     }),

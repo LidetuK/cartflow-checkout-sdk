@@ -440,11 +440,11 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
                       </p>
                       <div className="flex justify-center gap-6">
                         <div className="flex flex-col items-center gap-2 text-sm">
-                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-lg font-bold">T</div>
+                          <img src="/telebirr-logo.png" alt="telebirr" className="w-12 h-12 object-contain" />
                           <span>telebirr</span>
                         </div>
                         <div className="flex flex-col items-center gap-2 text-sm">
-                          <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white text-lg font-bold">C</div>
+                          <img src="/cbe-logo.png" alt="CBE Birr" className="w-12 h-12 object-contain" />
                           <span>CBE Birr</span>
                         </div>
                         <div className="flex flex-col items-center gap-2 text-sm">

@@ -20,9 +20,14 @@ export class PaymentsService {
     
     console.log('Combined string before encryption:', combinedString);
     
+    const encryptionKey = this.configService.get('YAGOUT_ENCRYPTION_KEY');
+    if (!encryptionKey) {
+      throw new Error('YAGOUT_ENCRYPTION_KEY is not configured');
+    }
+    
     const encryptedString = this.cryptoUtil.aes256CbcEncryptToBase64(
       combinedString,
-      this.configService.get('YAGOUT_ENCRYPTION_KEY')
+      encryptionKey
     );
     
     const hash = this.generateHash(dto.order_no, dto.amount);
@@ -43,11 +48,21 @@ export class PaymentsService {
       status: 'initiated'
     });
     
+    const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
+    const postUrl = this.configService.get('YAGOUT_POST_URL');
+    
+    if (!merchantId) {
+      throw new Error('YAGOUT_MERCHANT_ID is not configured');
+    }
+    if (!postUrl) {
+      throw new Error('YAGOUT_POST_URL is not configured');
+    }
+    
     return {
-      me_id: this.configService.get('YAGOUT_MERCHANT_ID'),
+      me_id: merchantId,
       merchant_request: encryptedString,
       hash: hash,
-      post_url: this.configService.get('YAGOUT_POST_URL'),
+      post_url: postUrl,
     };
   }
 
@@ -64,7 +79,7 @@ export class PaymentsService {
     };
   }
 
-  async updateTransactionStatus(orderNo: string, status: 'success' | 'failed', transactionId?: string) {
+  async updateTransactionStatus(orderNo: string, status: 'success' | 'failed' | 'failure', transactionId?: string) {
     const transaction = transactionStore.get(orderNo);
     if (transaction) {
       transaction.status = status;
@@ -84,15 +99,21 @@ export class PaymentsService {
     const errorCode = callbackData.error_code || 'PAYMENT_FAILED';
     const errorMessage = callbackData.error_message || 'Payment could not be completed';
     
-    // Update transaction status
-    await this.updateTransactionStatus(orderId, type, transactionId);
+    // Update transaction status - convert 'failure' to 'failed' for consistency
+    const status = type === 'failure' ? 'failed' : type;
+    await this.updateTransactionStatus(orderId, status, transactionId);
     
     // If there's encrypted merchant_response, decrypt it
     if (callbackData.merchant_response) {
       try {
+        const encryptionKey = this.configService.get('YAGOUT_ENCRYPTION_KEY');
+        if (!encryptionKey) {
+          throw new Error('YAGOUT_ENCRYPTION_KEY is not configured');
+        }
+        
         const decrypted = this.cryptoUtil.aes256CbcDecryptFromBase64(
           callbackData.merchant_response,
-          this.configService.get('YAGOUT_ENCRYPTION_KEY')
+          encryptionKey
         );
         console.log('Decrypted merchant_response:', decrypted);
         
@@ -117,6 +138,9 @@ export class PaymentsService {
 
   private buildSections(dto: InitiatePaymentDto): string[] {
     const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
+    if (!merchantId) {
+      throw new Error('YAGOUT_MERCHANT_ID is not configured');
+    }
     
     // Txn_Details: ag_id|me_id|order_no|amount|country|currency|txn_type|success_url|failure_url|channel
     const txnDetails = [
@@ -183,6 +207,15 @@ export class PaymentsService {
 
   private generateHash(orderNumber: string, amount: string): string {
     const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
+    const encryptionKey = this.configService.get('YAGOUT_ENCRYPTION_KEY');
+    
+    if (!merchantId) {
+      throw new Error('YAGOUT_MERCHANT_ID is not configured');
+    }
+    if (!encryptionKey) {
+      throw new Error('YAGOUT_ENCRYPTION_KEY is not configured');
+    }
+    
     const CURRENCY_FROM = 'ETH';
     const CURRENCY_TO = 'ETB';
     
@@ -197,7 +230,7 @@ export class PaymentsService {
     // Encrypt the hash with AES-256-CBC
     const encryptedHash = this.cryptoUtil.aes256CbcEncryptToBase64(
       sha256Hash,
-      this.configService.get('YAGOUT_ENCRYPTION_KEY')
+      encryptionKey
     );
     
     return encryptedHash;

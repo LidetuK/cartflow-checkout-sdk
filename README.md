@@ -1,4 +1,4 @@
-# YagoutPay SDK - Ethiopian Mobile Payment Integration
+# Yagout Pay SDK Code Sprint Challenge 2025
 
 A comprehensive payment integration solution for Ethiopian mobile payment methods (Telebirr, CBE Birr, M-PESA) using YagoutPay's Aggregator Hosted (Non-Seamless) payment gateway.
 

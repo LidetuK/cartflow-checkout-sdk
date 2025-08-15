@@ -3,115 +3,464 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Failed</title>
+    <title>Payment Failed - YagoutPay</title>
+    <link rel="icon" href="https://yagoutpay.com/wp-content/uploads/2024/03/finflow-favicon-1.png" type="image/png">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px 10px;
+            position: relative;
         }
+
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .failure {
-            color: #dc3545;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .details {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            animation: slideIn 0.8s ease-out;
             margin: 20px 0;
         }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .failure-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .failure-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .failure-icon::before {
+            content: "✕";
+            font-size: 30px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .failure-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .failure-subtitle {
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #e74c3c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 18px;
+            margin: 15px 0;
+            border-left: 4px solid #e74c3c;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .section.error-info {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #fdf2f2, #fde8e8);
+        }
+
+        .section.order-info {
+            border-left-color: #9c27b0;
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+        }
+
+        .section.help-info {
+            border-left-color: #f39c12;
+            background: linear-gradient(135deg, #fef7e0, #fde68a);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-info .section-title::before {
+            content: "⚠️";
+        }
+
+        .order-info .section-title::before {
+            content: "📋";
+        }
+
+        .help-info .section-title::before {
+            content: "💡";
+        }
+
         .detail-row {
             display: flex;
             justify-content: space-between;
-            margin: 10px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid #eee;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
         }
+
+        .detail-row:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
         .detail-label {
-            font-weight: bold;
-            color: #666;
+            font-weight: 500;
+            color: #5a6c7d;
+            font-size: 0.9rem;
         }
+
         .detail-value {
-            color: #333;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
         }
-        .button {
-            background: #007bff;
+
+        .amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e74c3c;
+            text-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
+        }
+
+        .error-badge {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .help-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .help-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-size: 0.85rem;
+            color: #5a6c7d;
+        }
+
+        .help-list li:last-child {
+            border-bottom: none;
+        }
+
+        .help-list li::before {
+            content: "•";
+            color: #f39c12;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
             margin-top: 20px;
-            margin-right: 10px;
         }
-        .button:hover {
-            background: #0056b3;
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .button-secondary {
-            background: #6c757d;
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
         }
-        .button-secondary:hover {
-            background: #545b62;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .footer-text {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .yagoutpay-brand {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .failure-title {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="failure">Payment Status: Failed</div>
+        <div class="failure-header">
+            <div class="failure-icon"></div>
+            <h1 class="failure-title">Payment Failed</h1>
+            <p class="failure-subtitle">We couldn't process your payment through YagoutPay</p>
+        </div>
         
-        <div class="details">
-            <div class="detail-row">
-                <span class="detail-label">Order No:</span>
-                <span class="detail-value" id="orderNo">Loading...</span>
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading transaction details...</p>
+        </div>
+        
+        <div id="transaction-details" style="display: none;">
+            <div class="section error-info">
+                <h3 class="section-title">Error Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Error Code:</span>
+                    <span class="error-badge" id="errorCode">PAYMENT_FAILED</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Error Message:</span>
+                    <span class="detail-value" id="errorMessage">Payment could not be completed</span>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Amount:</span>
-                <span class="detail-value" id="amount">Loading...</span>
+            
+            <div class="section order-info">
+                <h3 class="section-title">Order Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Order No:</span>
+                    <span class="detail-value" id="orderNo">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Transaction ID:</span>
+                    <span class="detail-value" id="txnId">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount:</span>
+                    <span class="detail-value amount" id="amount">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date & Time:</span>
+                    <span class="detail-value" id="dateTime">-</span>
+                </div>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Error Code:</span>
-                <span class="detail-value" id="errorCode">Loading...</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Error Message:</span>
-                <span class="detail-value" id="errorMessage">Loading...</span>
+
+            <div class="section help-info">
+                <h3 class="section-title">What you can try:</h3>
+                <ul class="help-list">
+                    <li>Check your mobile wallet balance</li>
+                    <li>Ensure your phone number is correct</li>
+                    <li>Try a different payment method</li>
+                    <li>Contact your bank if using CBE Birr</li>
+                    <li>Verify your internet connection</li>
+                </ul>
             </div>
         </div>
         
-        <a href="/" class="button">Back to Shop</a>
-        <a href="javascript:history.back()" class="button button-secondary">Try Again</a>
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">Back to Shop</a>
+            <button class="btn btn-secondary" onclick="window.history.back()">Try Again</button>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                Powered by <span class="yagoutpay-brand">YagoutPay</span> Financial Technology S.C.
+            </p>
+        </div>
     </div>
 
     <script>
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         
-        // Extract payment details
-        const orderNo = urlParams.get('order_no') || urlParams.get('order_id') || 'Unknown';
-        const amount = urlParams.get('amount') || '0.00';
-        const errorCode = urlParams.get('error_code') || 'PAYMENT_FAILED';
-        const errorMessage = urlParams.get('error_message') || 'Payment could not be completed';
+        // Get order number from URL or generate one
+        const orderNo = urlParams.get('order_no') || urlParams.get('order_id') || `ORD-${Date.now()}`;
         
-        // Update the page
-        document.getElementById('orderNo').textContent = orderNo;
-        document.getElementById('amount').textContent = amount;
-        document.getElementById('errorCode').textContent = errorCode;
-        document.getElementById('errorMessage').textContent = errorMessage;
+        // Try to fetch transaction details from backend
+        async function fetchTransactionDetails() {
+            try {
+                const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://your-backend-url.com';
+                const response = await fetch(`${apiBase}/payments/transaction/${orderNo}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTransactionData(data);
+                } else {
+                    // If backend doesn't have the data, use URL params
+                    displayFromUrlParams();
+                }
+            } catch (error) {
+                console.error('Error fetching transaction details:', error);
+                // Fallback to URL parameters
+                displayFromUrlParams();
+            }
+        }
+        
+        function displayTransactionData(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('transaction-details').style.display = 'block';
+            
+            // Error info
+            document.getElementById('errorCode').textContent = data.error_code || 'PAYMENT_FAILED';
+            document.getElementById('errorMessage').textContent = data.error_message || 'Payment could not be completed';
+            
+            // Transaction info
+            document.getElementById('orderNo').textContent = data.order_no || orderNo;
+            document.getElementById('txnId').textContent = data.transaction_id || 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            document.getElementById('amount').textContent = `${data.amount || '1.00'} ETB`;
+            document.getElementById('dateTime').textContent = data.date_time || new Date().toLocaleString();
+        }
+        
+        function displayFromUrlParams() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('transaction-details').style.display = 'block';
+            
+            // Extract payment details from URL
+            const txnId = urlParams.get('txn_id') || urlParams.get('transaction_id') || 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            const amount = urlParams.get('amount') || '1.00';
+            const dateTime = urlParams.get('date_time') || new Date().toLocaleString();
+            const errorCode = urlParams.get('error_code') || 'PAYMENT_FAILED';
+            const errorMessage = urlParams.get('error_message') || 'Payment could not be completed';
+            
+            // Error info
+            document.getElementById('errorCode').textContent = errorCode;
+            document.getElementById('errorMessage').textContent = errorMessage;
+            
+            // Transaction info
+            document.getElementById('orderNo').textContent = orderNo;
+            document.getElementById('txnId').textContent = txnId;
+            document.getElementById('amount').textContent = `${amount} ETB`;
+            document.getElementById('dateTime').textContent = dateTime;
+        }
+        
+        // Start loading transaction details
+        fetchTransactionDetails();
         
         // Log for debugging
-        console.log('Payment failed - URL params:', Object.fromEntries(urlParams));
+        console.log('Payment failure - URL params:', Object.fromEntries(urlParams));
     </script>
 </body>
 </html>

@@ -99,8 +99,8 @@ export const CheckoutForm = ({ items, total, onBack, onComplete }: CheckoutFormP
       const payload: PaymentPayload = {
         order_no: orderNo,
         amount: amount,  // Already formatted with 2 decimal places
-        success_url: `${protocol}//${host}/success`,
-        failure_url: `${protocol}//${host}/failure`,
+        success_url: `${protocol}//${host}/yagout_ca.html`,
+        failure_url: `${protocol}//${host}/yagout_ca_failure.html`,
         customer_name: `${formData.firstName} ${formData.lastName}`.trim(),
         email_id: formData.email,
         mobile_no: cleanPhone

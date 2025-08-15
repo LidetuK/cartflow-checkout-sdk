@@ -181,12 +181,9 @@ const Index = () => {
               Experience seamless shopping with Ethiopian payment methods.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-slide-in-right">
+            <div className="flex justify-center mb-12 animate-slide-in-right">
               <Button variant="secondary" size="lg" className="text-lg px-8 py-4">
                 Shop Now
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-white/30 text-white hover:bg-white/10">
-                Learn More
               </Button>
             </div>
           </div>
@@ -316,97 +313,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-16 bg-accent/20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What Our Customers Say</h2>
-            <p className="text-muted-foreground">Join thousands of satisfied customers</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="p-6 bg-card rounded-lg shadow-card">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-warning text-warning" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                "Amazing products and super fast delivery! The payment process with telebirr was seamless."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="font-semibold text-primary">AM</span>
-                </div>
-                <div>
-                  <p className="font-medium">Amanuel Tadesse</p>
-                  <p className="text-sm text-muted-foreground">Addis Ababa</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-6 bg-card rounded-lg shadow-card">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-warning text-warning" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                "Great selection of electronics and the customer service is outstanding. Highly recommended!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="font-semibold text-primary">ST</span>
-                </div>
-                <div>
-                  <p className="font-medium">Sara Tesfaye</p>
-                  <p className="text-sm text-muted-foreground">Dire Dawa</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-6 bg-card rounded-lg shadow-card">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-warning text-warning" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                "The best e-commerce platform in Ethiopia. Secure payments and quality products."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="font-semibold text-primary">DK</span>
-                </div>
-                <div>
-                  <p className="font-medium">Daniel Kassa</p>
-                  <p className="text-sm text-muted-foreground">Hawassa</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
-          <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter and be the first to know about new products, special offers, and exclusive deals.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="flex-1 px-4 py-3 rounded-lg text-foreground"
-            />
-            <Button variant="secondary" size="lg">
-              Subscribe
-            </Button>
-          </div>
-        </div>
-      </section>
 
       <CartSidebar
         items={cart.items}

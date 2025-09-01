@@ -1,101 +1,85 @@
-import { Controller, Post, Body, Get, Query, Res, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, HttpException, HttpStatus } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
-import { Response } from 'express';
+import { ApiPaymentDto } from './dto/api-payment.dto';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Get('test')
-  async test() {
-    return { message: 'Payments controller is working!' };
+  @Post('initiate')
+  async initiatePayment(@Body() dto: InitiatePaymentDto) {
+    try {
+      return await this.paymentsService.initiatePayment(dto);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Payment initiation failed';
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('api/initiate')
+  async initiateApiPayment(@Body() dto: ApiPaymentDto) {
+    try {
+      return await this.paymentsService.initiateApiPayment(dto);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'API payment initiation failed';
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('api/test')
+  async testApiEndpoint() {
+    return {
+      message: 'API endpoint is working!',
+      timestamp: new Date().toISOString(),
+      status: 'success'
+    };
   }
 
   @Get('transaction/:orderNo')
   async getTransactionDetails(@Param('orderNo') orderNo: string) {
+    try {
     const transaction = await this.paymentsService.getTransactionDetails(orderNo);
     if (!transaction) {
-      return { error: 'Transaction not found' };
+        throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND);
     }
     return transaction;
-  }
-
-  @Post('initiate')
-  async initiatePayment(@Body() initiatePaymentDto: InitiatePaymentDto) {
-    return this.paymentsService.initiatePayment(initiatePaymentDto);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get transaction details';
+      throw new HttpException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Post('callback/success')
-  async handleSuccessCallback(@Body() callbackData: any, @Res() res: Response) {
+  async handleSuccessCallback(@Body() callbackData: any) {
     try {
-      console.log('Success callback received:', callbackData);
-      
-      // Process the success response
-      const result = await this.paymentsService.processCallback(callbackData, 'success');
-      
-      // Redirect to frontend with success parameters
-      const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/success?` + 
-        `order_id=${result.orderId}&` +
-        `amount=${result.amount}&` +
-        `transaction_id=${result.transactionId}&` +
-        `status=success`;
-      
-      console.log('Redirecting to:', redirectUrl);
-      res.redirect(redirectUrl);
+      return await this.paymentsService.processCallback(callbackData, 'success');
     } catch (error) {
-      console.error('Error processing success callback:', error);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/failure?error=callback_error`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process success callback';
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
   }
 
   @Post('callback/failure')
-  async handleFailureCallback(@Body() callbackData: any, @Res() res: Response) {
+  async handleFailureCallback(@Body() callbackData: any) {
     try {
-      console.log('Failure callback received:', callbackData);
-      
-      // Process the failure response
-      const result = await this.paymentsService.processCallback(callbackData, 'failure');
-      
-      // Redirect to frontend with failure parameters
-      const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/failure?` +
-        `order_id=${result.orderId}&` +
-        `amount=${result.amount}&` +
-        `error_code=${result.errorCode}&` +
-        `error_message=${encodeURIComponent(result.errorMessage)}`;
-      
-      console.log('Redirecting to:', redirectUrl);
-      res.redirect(redirectUrl);
+      return await this.paymentsService.processCallback(callbackData, 'failure');
     } catch (error) {
-      console.error('Error processing failure callback:', error);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/failure?error=callback_error`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process failure callback';
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
     }
   }
 
-  @Get('callback/success')
-  async handleSuccessCallbackGet(@Query() query: any, @Res() res: Response) {
-    // Handle GET requests (fallback)
-    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/success?` +
-      `order_id=${query.order_id || 'unknown'}&` +
-      `amount=${query.amount || '0.00'}&` +
-      `transaction_id=${query.transaction_id || 'unknown'}&` +
-      `status=success`;
-    
-    console.log('GET Success callback - Redirecting to:', redirectUrl);
-    res.redirect(redirectUrl);
-  }
-
-  @Get('callback/failure')
-  async handleFailureCallbackGet(@Query() query: any, @Res() res: Response) {
-    // Handle GET requests (fallback)
-    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/failure?` +
-      `order_id=${query.order_id || 'unknown'}&` +
-      `amount=${query.amount || '0.00'}&` +
-      `error_code=${query.error_code || 'PAYMENT_FAILED'}&` +
-      `error_message=${encodeURIComponent(query.error_message || 'Payment failed')}`;
-    
-    console.log('GET Failure callback - Redirecting to:', redirectUrl);
-    res.redirect(redirectUrl);
+  @Get('test')
+  async test() {
+    return {
+      message: 'YagoutPay Payments Service is running',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    };
   }
 }
 

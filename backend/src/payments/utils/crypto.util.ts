@@ -5,8 +5,8 @@ export class CryptoUtil {
 
   aes256CbcEncryptToBase64(text: string, keyBase64: string): string {
     const key = Buffer.from(keyBase64, 'base64');
-    const cipher = crypto.createCipher('aes-256-cbc', key);
-    cipher.setAutoPadding(true);
+    const iv = Buffer.from(this.iv, 'utf8');
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     
     let encrypted = cipher.update(text, 'utf8', 'base64');
     encrypted += cipher.final('base64');
@@ -16,8 +16,8 @@ export class CryptoUtil {
 
   aes256CbcDecryptFromBase64(encryptedBase64: string, keyBase64: string): string {
     const key = Buffer.from(keyBase64, 'base64');
-    const decipher = crypto.createDecipher('aes-256-cbc', key);
-    decipher.setAutoPadding(true);
+    const iv = Buffer.from(this.iv, 'utf8');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     
     let decrypted = decipher.update(encryptedBase64, 'base64', 'utf8');
     decrypted += decipher.final('utf8');

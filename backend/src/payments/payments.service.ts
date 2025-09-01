@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
+import { ApiPaymentDto } from './dto/api-payment.dto';
 import { CryptoUtil } from './utils/crypto.util';
 
 // In-memory storage for transaction details (in production, use a database)
@@ -45,7 +46,8 @@ export class PaymentsService {
       bill_country: dto.bill_country,
       bill_zip: dto.bill_zip,
       created_at: new Date().toISOString(),
-      status: 'initiated'
+      status: 'initiated',
+      integration_type: 'hosted'
     });
     
     const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
@@ -64,6 +66,220 @@ export class PaymentsService {
       hash: hash,
       post_url: postUrl,
     };
+  }
+
+  async initiateApiPayment(dto: ApiPaymentDto) {
+    const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
+    const encryptionKey = this.configService.get('YAGOUT_ENCRYPTION_KEY');
+    const apiUrl = this.configService.get('yagout.apiUrl') || process.env.YAGOUT_API_URL;
+    
+    if (!merchantId) {
+      throw new Error('YAGOUT_MERCHANT_ID is not configured');
+    }
+    if (!encryptionKey) {
+      throw new Error('YAGOUT_ENCRYPTION_KEY is not configured');
+    }
+    if (!apiUrl) {
+      throw new Error('YAGOUT_API_URL is not configured');
+    }
+
+    console.log('🔗 Calling YagoutPay API URL:', apiUrl);
+    console.log('🔑 Using Merchant ID:', merchantId);
+    console.log('🔐 Encryption Key (first 20 chars):', encryptionKey?.substring(0, 20) + '...');
+
+    // Build the JSON request structure as per YagoutPay documentation
+    const requestData = {
+      card_details: {
+        cardNumber: "",
+        expiryMonth: "",
+        expiryYear: "",
+        cvv: "",
+        cardName: ""
+      },
+      other_details: {
+        udf1: dto.udf_1 || "",
+        udf2: dto.udf_2 || "",
+        udf3: dto.udf_3 || "",
+        udf4: dto.udf_4 || "",
+        udf5: dto.udf_5 || "",
+        udf6: dto.udf_6 || "",
+        udf7: dto.udf_7 || ""
+      },
+      ship_details: {
+        shipAddress: dto.ship_address || "",
+        shipCity: dto.ship_city || "",
+        shipState: dto.ship_state || "",
+        shipCountry: dto.ship_country || "",
+        shipZip: dto.ship_zip || "",
+        shipDays: dto.ship_days || "",
+        addressCount: dto.address_count || ""
+      },
+      txn_details: {
+        agId: "yagout",
+        meId: merchantId,
+        orderNo: dto.order_no,
+        amount: dto.amount,
+        country: "ETH",
+        currency: "ETB",
+        transactionType: "SALE",
+        sucessUrl: "",
+        failureUrl: "",
+        channel: "API"
+      },
+      item_details: {
+        itemCount: dto.item_count || "",
+        itemValue: dto.item_value || "",
+        itemCategory: dto.item_category || ""
+      },
+      cust_details: {
+        customerName: dto.customer_name || "",
+        emailId: dto.email_id,
+        mobileNumber: dto.mobile_no,
+        uniqueId: "",
+        isLoggedIn: "Y"
+      },
+      pg_details: {
+        pg_Id: dto.pg_id || "67ee846571e740418d688c3f",
+        paymode: dto.paymode || "WA",
+        scheme_Id: dto.scheme_id || "7",
+        wallet_type: dto.wallet_type || "telebirr"
+      },
+      bill_details: {
+        billAddress: dto.bill_address || "",
+        billCity: dto.bill_city || "",
+        billState: dto.bill_state || "",
+        billCountry: dto.bill_country || "",
+        billZip: dto.bill_zip || ""
+      }
+    };
+
+    console.log('API Request data before encryption:', JSON.stringify(requestData, null, 2));
+
+    // Convert to JSON string and encrypt
+    const jsonString = JSON.stringify(requestData);
+    const encryptedRequest = this.cryptoUtil.aes256CbcEncryptToBase64(
+      jsonString,
+      encryptionKey
+    );
+
+    // Store transaction details for later retrieval
+    transactionStore.set(dto.order_no, {
+      order_no: dto.order_no,
+      amount: dto.amount,
+      customer_name: dto.customer_name,
+      email_id: dto.email_id,
+      mobile_no: dto.mobile_no,
+      bill_address: dto.bill_address,
+      bill_city: dto.bill_city,
+      bill_state: dto.bill_state,
+      bill_country: dto.bill_country,
+      bill_zip: dto.bill_zip,
+      created_at: new Date().toISOString(),
+      status: 'initiated',
+      integration_type: 'api'
+    });
+
+    // Make the API call to YagoutPay
+    try {
+      // Use https module directly to bypass SSL issues
+      const https = require('https');
+      const url = require('url');
+      
+      const parsedUrl = url.parse(apiUrl);
+      // According to YagoutPay documentation, the request should be:
+      // { "merchantId": "your_merchant_id", "merchantRequest": "encrypted_data" }
+      const postData = JSON.stringify({
+        merchantId: merchantId,
+        merchantRequest: encryptedRequest
+      });
+
+      console.log('🔐 Encrypted request (first 50 chars):', encryptedRequest.substring(0, 50) + '...');
+      console.log('📤 Sending request to:', apiUrl);
+      console.log('📋 Request payload:', postData);
+
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 443,
+        path: parsedUrl.path,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        },
+        rejectUnauthorized: false // Disable SSL verification
+      };
+
+      return new Promise((resolve, reject) => {
+        const req = https.request(options, (res: any) => {
+          let data = '';
+          
+          res.on('data', (chunk: any) => {
+            data += chunk;
+          });
+          
+          res.on('end', async () => {
+            try {
+              const responseData = JSON.parse(data);
+              console.log('YagoutPay API Response:', responseData);
+
+              // Decrypt the response if it contains encrypted data
+              if (responseData.response) {
+                try {
+                  const decryptedResponse = this.cryptoUtil.aes256CbcDecryptFromBase64(
+                    responseData.response,
+                    encryptionKey
+                  );
+                  console.log('Decrypted response:', decryptedResponse);
+                  
+                  // Parse the decrypted response
+                  const parsedResponse = JSON.parse(decryptedResponse);
+                  
+                  // Update transaction status based on response
+                  if (responseData.status === 'Success') {
+                    await this.updateTransactionStatus(dto.order_no, 'success', parsedResponse.transactionId);
+                  } else {
+                    await this.updateTransactionStatus(dto.order_no, 'failed');
+                  }
+
+                  resolve({
+                    status: responseData.status,
+                    statusMessage: responseData.statusMessage,
+                    transactionId: parsedResponse.transactionId,
+                    orderId: dto.order_no,
+                    amount: dto.amount,
+                    decryptedResponse: parsedResponse
+                  });
+                } catch (decryptError) {
+                  console.error('Error decrypting response:', decryptError);
+                  resolve({
+                    status: responseData.status,
+                    statusMessage: responseData.statusMessage,
+                    encryptedResponse: responseData.response
+                  });
+                }
+              } else {
+                resolve(responseData);
+              }
+            } catch (error) {
+              reject(new Error(`Failed to parse response: ${error}`));
+            }
+          });
+        });
+
+        req.on('error', (error: any) => {
+          console.error('Error calling YagoutPay API:', error);
+          reject(new Error(`Payment processing failed: ${error.message}`));
+        });
+
+        req.write(postData);
+        req.end();
+      });
+    } catch (error) {
+      console.error('Error calling YagoutPay API:', error);
+      await this.updateTransactionStatus(dto.order_no, 'failed');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`Payment processing failed: ${errorMessage}`);
+    }
   }
 
   async getTransactionDetails(orderNo: string) {

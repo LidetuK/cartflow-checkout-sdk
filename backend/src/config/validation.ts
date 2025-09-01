@@ -6,6 +6,7 @@ export const validationSchema = Joi.object({
   YAGOUT_ENCRYPTION_KEY: Joi.string().required(),
   YAGOUT_AGGREGATOR_ID: Joi.string().default('yagout'),
   YAGOUT_POST_URL: Joi.string().uri().required(),
+  YAGOUT_API_URL: Joi.string().uri().required(),
 });
 
 

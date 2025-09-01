@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { ProductCard } from '@/components/ProductCard';
 import { CartSidebar } from '@/components/CartSidebar';
 import { CheckoutForm } from '@/components/CheckoutForm';
+import { ApiCheckoutForm } from '@/components/ApiCheckoutForm';
 import { OrderSuccess } from '@/components/OrderSuccess';
 import { useCart } from '@/hooks/useCart';
 import { Product, CheckoutData } from '@/types/product';
@@ -129,7 +130,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-surface">
         <Header cartItemCount={cart.itemCount} onCartClick={() => cart.setIsOpen(true)} />
-        <CheckoutForm
+        <ApiCheckoutForm
           items={cart.items}
           total={cart.total}
           onBack={() => setViewMode('shop')}
@@ -181,9 +182,17 @@ const Index = () => {
               Experience seamless shopping with Ethiopian payment methods.
             </p>
             
-            <div className="flex justify-center mb-12 animate-slide-in-right">
+            <div className="flex justify-center gap-4 mb-12 animate-slide-in-right">
               <Button variant="secondary" size="lg" className="text-lg px-8 py-4">
                 Shop Now
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="text-lg px-8 py-4 border-white/30 text-white hover:bg-white/10"
+                onClick={() => window.location.href = '/checkout2'}
+              >
+                🚀 Test Direct API
               </Button>
             </div>
           </div>

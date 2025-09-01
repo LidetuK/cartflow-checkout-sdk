@@ -7,6 +7,9 @@ export default () => ({
     uatPostUrl:
       process.env.YAGOUT_POST_URL ||
       'https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/paymentRedirection/checksumGatewayPage',
+    apiUrl:
+      process.env.YAGOUT_API_URL ||
+      'https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/apiRedirection/apiIntegration',
   },
 });
 

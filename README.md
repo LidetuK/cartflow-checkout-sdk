@@ -4,6 +4,7 @@ A comprehensive payment integration solution for Ethiopian mobile payment method
 
 ## 🚀 Features
 
+- **Dual Integration Methods**: Both Aggregator Hosted (Non-Seamless) and Direct API integration
 - **Ethiopian Mobile Payment Integration**: Support for Telebirr, CBE Birr, and M-PESA
 - **Modern React Frontend**: Built with React 18, TypeScript, and Vite
 - **NestJS Backend**: Robust API with encryption and transaction management
@@ -34,10 +35,12 @@ A comprehensive payment integration solution for Ethiopian mobile payment method
 
 ### Payment Integration
 - **YagoutPay API** - Ethiopian payment gateway
+- **Dual Integration Methods**:
+  - **Aggregator Hosted (Non-Seamless)**: Form-based redirect to YagoutPay hosted page
+  - **Direct API Integration**: JSON API calls with encrypted requests/responses
 - **AES-256-CBC** - Encryption algorithm
 - **SHA-256** - Hashing for integrity
 - **Base64 Encoding** - Data encoding
-- **Form-based Redirect** - Payment flow
 
 ## 📁 Project Structure
 
@@ -149,7 +152,8 @@ VITE_API_BASE_URL=http://localhost:4000
 PORT=4000
 YAGOUT_MERCHANT_ID=your_merchant_id
 YAGOUT_ENCRYPTION_KEY=your_base64_encryption_key
-YAGOUT_POST_URL=https://uatcheckout.yagoutpay.com/payment
+YAGOUT_POST_URL=https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/paymentRedirection/checksumGatewayPage
+YAGOUT_API_URL=https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/apiRedirection/apiIntegration
 FRONTEND_URL=http://localhost:8080
 ```
 
@@ -164,6 +168,7 @@ To get your YagoutPay credentials:
 
 ## 📱 Payment Flow
 
+### Aggregator Hosted (Non-Seamless) Flow
 1. **User selects products** and proceeds to checkout
 2. **Frontend collects** customer information and payment method
 3. **Backend processes** the payment request:
@@ -174,6 +179,17 @@ To get your YagoutPay credentials:
 5. **User completes** payment on YagoutPay platform
 6. **Callback handling** with transaction details
 7. **Success/Failure** pages display results
+
+### Direct API Integration Flow
+1. **User selects products** and proceeds to checkout
+2. **Frontend collects** customer information and payment method
+3. **Backend processes** the payment request:
+   - Builds JSON request structure
+   - Encrypts entire JSON payload using AES-256-CBC
+   - Sends encrypted request to YagoutPay API
+4. **Real-time processing** on YagoutPay servers
+5. **Immediate response** with transaction status
+6. **Direct result** displayed to user
 
 ## 🔐 Security Features
 
@@ -197,15 +213,22 @@ To get your YagoutPay credentials:
 
 ### Backend API
 
-- `POST /payments/initiate` - Initialize payment
+#### Aggregator Hosted (Non-Seamless)
+- `POST /payments/initiate` - Initialize hosted payment
 - `GET /payments/transaction/:orderNo` - Get transaction details
 - `POST /payments/callback/success` - Success callback
 - `POST /payments/callback/failure` - Failure callback
+
+#### Direct API Integration
+- `POST /payments/api/initiate` - Initialize direct API payment
+- `GET /payments/transaction/:orderNo` - Get transaction details
+
+#### General
 - `GET /payments/test` - Health check
 
 ### Request/Response Examples
 
-#### Payment Initiation
+#### Hosted Payment Initiation
 ```json
 {
   "order_no": "ORD-123456789",
@@ -218,13 +241,48 @@ To get your YagoutPay credentials:
 }
 ```
 
-#### Payment Response
+#### Hosted Payment Response
 ```json
 {
   "me_id": "your_merchant_id",
   "merchant_request": "encrypted_data",
   "hash": "generated_hash",
-  "post_url": "https://uatcheckout.yagoutpay.com/payment"
+  "post_url": "https://uatcheckout.yagoutpay.com/ms-transaction-core-1-0/paymentRedirection/checksumGatewayPage"
+}
+```
+
+#### Direct API Payment Initiation
+```json
+{
+  "order_no": "ORD-123456789",
+  "amount": "1.00",
+  "customer_name": "John Doe",
+  "email_id": "john@example.com",
+  "mobile_no": "251912345678",
+  "bill_address": "Bole Road",
+  "bill_city": "Addis Ababa",
+  "bill_state": "Addis Ababa",
+  "bill_country": "ET",
+  "bill_zip": "1000",
+  "pg_id": "67ee846571e740418d688c3f",
+  "paymode": "WA",
+  "scheme_id": "7",
+  "wallet_type": "telebirr"
+}
+```
+
+#### Direct API Payment Response
+```json
+{
+  "status": "Success",
+  "statusMessage": "No Error",
+  "transactionId": "TXN123456789",
+  "orderId": "ORD-123456789",
+  "amount": "1.00",
+  "decryptedResponse": {
+    "transactionId": "TXN123456789",
+    "status": "success"
+  }
 }
 ```
 
@@ -257,7 +315,8 @@ VITE_API_BASE_URL=https://your-backend-url.com
 PORT=4000
 YAGOUT_MERCHANT_ID=your_production_merchant_id
 YAGOUT_ENCRYPTION_KEY=your_production_encryption_key
-YAGOUT_POST_URL=https://checkout.yagoutpay.com/payment
+YAGOUT_POST_URL=https://checkout.yagoutpay.com/ms-transaction-core-1-0/paymentRedirection/checksumGatewayPage
+YAGOUT_API_URL=https://checkout.yagoutpay.com/ms-transaction-core-1-0/apiRedirection/apiIntegration
 FRONTEND_URL=https://your-frontend-url.com
 ```
 

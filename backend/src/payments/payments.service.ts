@@ -68,6 +68,106 @@ export class PaymentsService {
     };
   }
 
+  async encryptApiData(dto: ApiPaymentDto) {
+    const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
+    const encryptionKey = this.configService.get('YAGOUT_ENCRYPTION_KEY');
+    
+    if (!merchantId) {
+      throw new Error('YAGOUT_MERCHANT_ID is not configured');
+    }
+    if (!encryptionKey) {
+      throw new Error('YAGOUT_ENCRYPTION_KEY is not configured');
+    }
+
+    console.log('🔑 Using Merchant ID:', merchantId);
+    console.log('🔐 Encryption Key (first 20 chars):', encryptionKey?.substring(0, 20) + '...');
+
+    // Build the JSON request structure as per YagoutPay documentation
+    const requestData = {
+      card_details: {
+        cardNumber: "",
+        expiryMonth: "",
+        expiryYear: "",
+        cvv: "",
+        cardName: ""
+      },
+      other_details: {
+        udf1: dto.udf_1 || "",
+        udf2: dto.udf_2 || "",
+        udf3: dto.udf_3 || "",
+        udf4: dto.udf_4 || "",
+        udf5: dto.udf_5 || "",
+        udf6: dto.udf_6 || "",
+        udf7: dto.udf_7 || ""
+      },
+      ship_details: {
+        shipAddress: dto.ship_address || "",
+        shipCity: dto.ship_city || "",
+        shipState: dto.ship_state || "",
+        shipCountry: dto.ship_country || "",
+        shipZip: dto.ship_zip || "",
+        shipDays: dto.ship_days || "",
+        addressCount: dto.address_count || ""
+      },
+      txn_details: {
+        agId: "yagout",
+        meId: merchantId,
+        orderNo: dto.order_no,
+        amount: dto.amount,
+        country: "ETH",
+        currency: "ETB",
+        transactionType: "SALE",
+        sucessUrl: "",
+        failureUrl: "",
+        channel: "API"
+      },
+      item_details: {
+        itemCount: dto.item_count || "",
+        itemValue: dto.item_value || "",
+        itemCategory: dto.item_category || "General"
+      },
+      cust_details: {
+        customerName: dto.customer_name || "",
+        emailId: dto.email_id,
+        mobileNumber: dto.mobile_no,
+        uniqueId: "",
+        isLoggedIn: "Y"
+      },
+      pg_details: {
+        pg_Id: dto.pg_id || "",
+        paymode: dto.paymode || "",
+        scheme_Id: dto.scheme_id || "",
+        wallet_type: dto.wallet_type || ""
+      },
+      bill_details: {
+        billAddress: dto.bill_address || "",
+        billCity: dto.bill_city || "",
+        billState: dto.bill_state || "",
+        billCountry: dto.bill_country || "",
+        billZip: dto.bill_zip || ""
+      }
+    };
+
+    console.log('API Request data before encryption:', JSON.stringify(requestData, null, 2));
+
+    // Convert to JSON string and encrypt
+    const jsonString = JSON.stringify(requestData);
+    const encryptedRequest = this.cryptoUtil.aes256CbcEncryptToBase64(
+      jsonString,
+      encryptionKey
+    );
+
+    console.log('🔐 Encrypted request (first 50 chars):', encryptedRequest.substring(0, 50) + '...');
+
+    // Return just the encrypted data for testing
+    return {
+      merchantId: merchantId,
+      merchantRequest: encryptedRequest,
+      originalData: requestData,
+      encryptedLength: encryptedRequest.length
+    };
+  }
+
   async initiateApiPayment(dto: ApiPaymentDto) {
     const merchantId = this.configService.get('YAGOUT_MERCHANT_ID');
     const encryptionKey = this.configService.get('YAGOUT_ENCRYPTION_KEY');

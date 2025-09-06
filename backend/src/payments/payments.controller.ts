@@ -36,6 +36,16 @@ export class PaymentsController {
     };
   }
 
+  @Post('api/encrypt')
+  async encryptApiData(@Body() dto: ApiPaymentDto) {
+    try {
+      return await this.paymentsService.encryptApiData(dto);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Data encryption failed';
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @Get('transaction/:orderNo')
   async getTransactionDetails(@Param('orderNo') orderNo: string) {
     try {
